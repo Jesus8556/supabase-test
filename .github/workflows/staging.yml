@@ -22,5 +22,5 @@ jobs:
         with:
           version: latest
 
-      - run: supabase link --project-ref inplnjzdigncaxrjhbod --password el_bromas811 
+      - run: supabase link --project-ref inplnjzdigncaxrjhbod --password Dddskjwtbk8556 
       - run: supabase db push
