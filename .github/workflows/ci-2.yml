@@ -1,36 +1,38 @@
-# This is a basic workflow to help you get started with Actions
+name: Deploy Migrations to Staging
 
-name: CI
-
-# Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the "main" branch
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
-
-  # Allows you to run this workflow manually from the Actions tab
+    branches:
+      - develop
   workflow_dispatch:
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
-  build:
-    # The type of runner that the job will run on
+  deploy:
     runs-on: ubuntu-latest
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v4
+      # Paso 1: Checkout del código
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: echo Hello, world!
+      # Paso 2: Configurar Supabase CLI
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
 
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
+      # Paso 3: Probar conexión a la base de datos
+      - name: Test Database Connection
         run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+          echo "Testing connection to the database..."
+          supabase db reset --db-url $DATABASE_URL --non-interactive || echo "Connection test failed"
+
+      # Paso 4: Ejecutar migraciones de la base de datos
+      - name: Run database migrations
+        run: |
+          echo "Running database migrations..."
+          supabase db push --db-url $DATABASE_URL --debug
